@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class HollowRotation : MonoBehaviour
 {
-    bool safeToTransform = false;
     float zAxisRotation;
     public GameObject verticalLeft;
     public GameObject verticalRight;
@@ -36,12 +35,11 @@ public class HollowRotation : MonoBehaviour
     void Update()
     {
         Debug.Log("working");
-        if (!safeToTransform)
-        {
-            zAxisRotation = transform.rotation.eulerAngles.z;
-            transform.rotation = new Quaternion();
-            safeToTransform = true;
-        }
+
+        zAxisRotation = transform.rotation.eulerAngles.z;
+        transform.rotation = new Quaternion();
+
+        
         yAnchorDown.yPos();
         xAnchorLeft.xPos();
         yLockDown.yLock();
@@ -50,14 +48,7 @@ public class HollowRotation : MonoBehaviour
         xAnchorRight.xPos();
         yLockUp.yLock();
         xLockRight.xLock();
+        transform.rotation = Quaternion.Euler(0, 0, zAxisRotation);
     }
-    private void LateUpdate()
-    {
-        if (safeToTransform)
-        {
-            transform.rotation = Quaternion.Euler(0, 0, zAxisRotation);
-            safeToTransform = false;
-        }
-        
-    }
+    
 }

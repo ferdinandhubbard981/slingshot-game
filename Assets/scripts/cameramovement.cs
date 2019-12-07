@@ -13,9 +13,9 @@ public class cameramovement : MonoBehaviour {
     {
         cameraMovement = true;
     }
-    void FixedUpdate ()
+    void FixedUpdate()
     {
-        if (player.position.y + 5 > transform.position.y & cameraMovement)
+        if ((player.position.y + 5 > transform.position.y || player.position.y + 5 < transform.position.y) & cameraMovement)
         {
             Vector3 desiredPosition = new Vector3(transform.position.x, player.position.y + offset.y, player.position.z + offset.z);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
