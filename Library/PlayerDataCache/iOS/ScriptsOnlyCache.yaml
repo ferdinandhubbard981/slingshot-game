@@ -7,7 +7,6 @@ ScriptsOnlyBuild:
     - TimeManager
     - cameramovement
     - generatelevel
-    - lavarise
     - movement
     - xAxisLock
     - yAxisLock
@@ -41,8 +40,6 @@ ScriptsOnlyBuild:
     - Class: 61
       Script: {instanceID: 0}
     - Class: 62
-      Script: {instanceID: 0}
-    - Class: 65
       Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}

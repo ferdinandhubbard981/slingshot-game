@@ -8,6 +8,6 @@ public class yAxisLock : MonoBehaviour
 
     public void yLock()
     {
-        transform.localScale = new Vector3(transform.localScale.x, 0.1f / horizontalScale.localScale.y, 1);
+        transform.localScale = new Vector3(transform.localScale.x, 0.025f / horizontalScale.localScale.y, 1);
     }
 }

@@ -63,10 +63,11 @@ public class movement : MonoBehaviour
 
 
         //contact 
-        if (true && Input.touchCount > 0)
+        if (contact && Input.touchCount > 0)
         {
+
             touch = Input.GetTouch(0);
-            if (touch.phase == TouchPhase.Began)
+            if (/*touch.phase == TouchPhase.Began*/ !isPressed)
             {
                 TouchDown();
             }
