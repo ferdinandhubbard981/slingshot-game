@@ -34,7 +34,6 @@ public class HollowRotation : MonoBehaviour
     }
     void Update()
     {
-        Debug.Log("working");
 
         zAxisRotation = transform.rotation.eulerAngles.z;
         transform.rotation = new Quaternion();

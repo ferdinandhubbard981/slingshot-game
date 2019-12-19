@@ -9,7 +9,7 @@ public class xAxisLock : MonoBehaviour
     
     public void xLock()
     {
-        transform.localScale = new Vector3(0.025f / verticalScale.localScale.x ,transform.localScale.y, 1);
+        transform.localScale = new Vector3(0.05f / verticalScale.localScale.x ,transform.localScale.y, 1);
     }
     
 }

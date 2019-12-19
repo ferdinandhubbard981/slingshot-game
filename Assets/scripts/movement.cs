@@ -2,12 +2,12 @@
 using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
+
 public class movement : MonoBehaviour
 {
     float touchBaseDistance;
     List<SpriteRenderer> dotSpriteRenderer;
-    public GameObject dotObject;
-    public GameObject basepoint;
+    public GameObject dotPrefab;
     List<GameObject> trajectoryPoints;
     public int numOfTrajectoryPoints;
     Vector2 basepointposition;
@@ -17,14 +17,15 @@ public class movement : MonoBehaviour
     float rightConstraint;
     public static movement instance;
     Vector2 direction;
-    public cameramovement cameraFollow;
-
+    //public GameObject cameraHolderPrefab;
+    public cameramovement cameraFollow;   
     public float hopModifier;
     private bool isPressed = false;
     Vector2 touchposition;
     Rigidbody2D rb;
     bool contact;
-    Touch touch;
+    Touch touch;  
+
     private void Awake()
     {
         dotSpriteRenderer = new List<SpriteRenderer>();
@@ -33,20 +34,18 @@ public class movement : MonoBehaviour
         rightConstraint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, -10)).x;
         instance = this;
         contact = true;
-
+        
         trajectoryPoints = new List<GameObject>();
         //TrajectoryPoints are instatiated
         for (int i = 0; i < numOfTrajectoryPoints; i++)
         {
-            GameObject dot = Instantiate(dotObject);
+            GameObject dot = Instantiate(dotPrefab);
 
             dotSpriteRenderer.Insert(i, dot.GetComponent<SpriteRenderer>());
             dotSpriteRenderer[i].enabled = false;
-            //SpriteRenderer dotrenderer = dot.GetComponent<SpriteRenderer>();
-            //dotrenderer.enabled = false;
             trajectoryPoints.Insert(i, dot);
         }
-
+       
     }
     void Update()
     {
@@ -87,8 +86,7 @@ public class movement : MonoBehaviour
     {
         touchposition = Camera.main.ScreenToWorldPoint(touch.position);
         isPressed = true;
-        basepoint.transform.position = touchposition;
-        basepointposition = new Vector2(basepoint.transform.position.x, basepoint.transform.position.y);
+        basepointposition = new Vector2(touchposition.x, touchposition.y);
         timeManager.SlowDownTime();
         cameraFollow.cameraMovement = false;
     }
@@ -99,9 +97,11 @@ public class movement : MonoBehaviour
         contact = false;
         isPressed = false;
         timeManager.SpeedUpTime();
-        rb.velocity = direction * -hopModifier * touchBaseDistance;
+        //rb.velocity = direction * -hopModifier * touchBaseDistance; for multiple power levels
+        rb.velocity = direction * -hopModifier;
         EnableDotRenderer(false);
         cameraFollow.cameraMovement = true;
+        rb.gravityScale = 2;
     }
 
     private void DragBall()
@@ -117,7 +117,15 @@ public class movement : MonoBehaviour
         {
             contact = true;
         }
-        else if (collision.gameObject.tag == "kill")
+        
+    }
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "kill")
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+        else if (collision.gameObject.tag == "win")
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -167,6 +175,6 @@ public class movement : MonoBehaviour
         }
     }
 }
-    
+
 
 
