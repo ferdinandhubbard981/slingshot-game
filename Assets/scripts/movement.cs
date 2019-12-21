@@ -8,6 +8,9 @@ public class movement : MonoBehaviour
     float touchBaseDistance;
     List<SpriteRenderer> dotSpriteRenderer;
     public GameObject dotPrefab;
+    public GameObject lavaPrefab;
+    lavarise lavaScript;
+    GameObject lava;
     List<GameObject> trajectoryPoints;
     public int numOfTrajectoryPoints;
     Vector2 basepointposition;
@@ -18,23 +21,28 @@ public class movement : MonoBehaviour
     public static movement instance;
     Vector2 direction;
     //public GameObject cameraHolderPrefab;
-    public cameramovement cameraFollow;   
+    public GameObject cameraHolder;
+    cameramovement cameraFollow;
     public float hopModifier;
     private bool isPressed = false;
     Vector2 touchposition;
     Rigidbody2D rb;
     bool contact;
-    Touch touch;  
+    Touch touch;
 
-    private void Awake()
+    private void Start()
     {
+        
+        lava = Instantiate(lavaPrefab);
+        lavaScript = lava.GetComponent<lavarise>();
+        cameraFollow = cameraHolder.GetComponent<cameramovement>();
         dotSpriteRenderer = new List<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
         leftConstraint = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, -10)).x;
         rightConstraint = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, -10)).x;
         instance = this;
         contact = true;
-        
+
         trajectoryPoints = new List<GameObject>();
         //TrajectoryPoints are instatiated
         for (int i = 0; i < numOfTrajectoryPoints; i++)
@@ -45,7 +53,7 @@ public class movement : MonoBehaviour
             dotSpriteRenderer[i].enabled = false;
             trajectoryPoints.Insert(i, dot);
         }
-       
+
     }
     void Update()
     {
@@ -97,15 +105,16 @@ public class movement : MonoBehaviour
         contact = false;
         isPressed = false;
         timeManager.SpeedUpTime();
-        //rb.velocity = direction * -hopModifier * touchBaseDistance; for multiple power levels
-        rb.velocity = direction * -hopModifier;
+        rb.velocity = direction * -hopModifier * touchBaseDistance; //for multiple power levels
+        //rb.velocity = direction * -hopModifier; //for no power control
         EnableDotRenderer(false);
         cameraFollow.cameraMovement = true;
         rb.gravityScale = 2;
+        lavaScript.movement = true;
     }
 
     private void DragBall()
-    {        
+    {
         touchposition = Camera.main.ScreenToWorldPoint(touch.position);
         direction = (touchposition - basepointposition).normalized;
         trajectoryLine();
@@ -117,13 +126,13 @@ public class movement : MonoBehaviour
         {
             contact = true;
         }
-        
+
     }
     void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "kill")
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            killPlayer();
         }
         else if (collision.gameObject.tag == "win")
         {
@@ -141,6 +150,10 @@ public class movement : MonoBehaviour
         {
             touchBaseDistance = 1;
         }
+        else
+        {
+            touchBaseDistance = Mathf.Round(touchBaseDistance);
+        }
         float subDistance = touchBaseDistance / numOfTrajectoryPoints;
         //float yDistance = Mathf.Pow((touchposition.y + basepointposition.y), 2);
         //float xDistance = Mathf.Pow((touchposition.x + basepointposition.x), 2);
@@ -155,7 +168,7 @@ public class movement : MonoBehaviour
             trajectoryPoints[i].transform.position = pos;
             dotSpriteRenderer[i].enabled = true;
         }
-        
+
     }
     void EnableDotRenderer(bool state)
     {
@@ -174,7 +187,19 @@ public class movement : MonoBehaviour
             }
         }
     }
+    public void killPlayer()
+    {
+        Destroy(lava);
+        cameraFollow.cameraMovement = false;
+        cameraFollow.transform.position = new Vector3(0, 5.85f, -10);
+        rb.velocity = new Vector2(0, 0);
+        rb.position = new Vector2(0, 0.85f);
+        contact = true;
+        
+        rb.gravityScale = 0;
+        //Destroy(gameObject);
+        lava = Instantiate(lavaPrefab);
+
+    }
+
 }
-
-
-

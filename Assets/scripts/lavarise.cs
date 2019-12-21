@@ -4,12 +4,17 @@ using UnityEngine;
 
 public class lavarise : MonoBehaviour {
     public float speed;
-    private void Awake()
+    public bool movement;
+
+    void Start()
     {
+        movement = false;
     }
-    // Update is called once per frame
     void Update ()
     {
-        //transform.position = new Vector3(0, transform.position.y + speed * Time.deltaTime, 0);
+        if (movement)
+        {
+            transform.position = new Vector3(0, transform.position.y + speed * Time.deltaTime, 0);
+        }    
     }
 }

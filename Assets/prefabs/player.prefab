@@ -132,10 +132,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53353033e26bc154ab5d45e795c1e567, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerPrefab: {fileID: 2728150505560677948}
   dotPrefab: {fileID: 6109975853838068386, guid: 6d7280d24bf496d45b3f0f6be5712526,
     type: 3}
   numOfTrajectoryPoints: 10
   timeManager: {fileID: 4032642549154419751, guid: 379f9bd592acafb4cb31ae050f43ed95,
     type: 3}
-  cameraFollow: {fileID: 0}
+  cameraFollow: {fileID: 7086950001128067894, guid: eba5312df587cd74893e73eade12d7f2,
+    type: 3}
   hopModifier: 20

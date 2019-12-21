@@ -43,4 +43,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d6427233a455f54681b2736ed88b68d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstacle: {fileID: 1443219844079398, guid: f883f58b8a408fe4197f87216461ec91, type: 3}
+  wallPrefab: {fileID: 1443219844079398, guid: f883f58b8a408fe4197f87216461ec91, type: 3}
+  hollowPrefab: {fileID: 7342284078111571510, guid: 4d5e2a5d57edc284fb136508092d2459,
+    type: 3}
