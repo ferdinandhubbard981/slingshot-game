@@ -136,7 +136,7 @@ public class movement : MonoBehaviour
         }
         else if (collision.gameObject.tag == "win")
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);            
         }
     }
     void trajectoryLine()
@@ -200,6 +200,15 @@ public class movement : MonoBehaviour
         //Destroy(gameObject);
         lava = Instantiate(lavaPrefab);
 
+    }
+    void LavaAdjust()
+    {
+        if (transform.position.y - (lava.transform.position.y + lava.transform.localScale.y / 2) > 10)
+        {
+            Vector3 desiredPosition = new Vector3(0, transform.position.y - (10 + lavaScript.transform.localScale.y / 2), 1);
+            Vector3 smoothedPosition = Vector3.Lerp(lava.transform.position, desiredPosition, 0.05f);
+            transform.position = smoothedPosition;
+        }
     }
 
 }

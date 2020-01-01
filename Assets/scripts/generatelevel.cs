@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class generatelevel : MonoBehaviour
 {
+    public GameObject levelButton;
+    onClick saveScript;
     public GameObject[] prefabs;
     public float skewIntensity = 1;
-    float randomXPos, randomYPos, randomXScale, randomYScale, randomZRotation, hollowXConstant, hollowYConstant, skew, minimumObjectCount;
+    float randomXPos, randomYPos, randomXScale, randomYScale, randomZRotation, hollowXConstant, hollowYConstant, skew;
     public float areaFill = 0.2f;
     float screenwidth;
     GameObject currentObstacle;
@@ -14,15 +16,19 @@ public class generatelevel : MonoBehaviour
     float subsection;
     void Start()
     {
+        saveScript = levelButton.GetComponent<onClick>();
         areaFill = Random.Range(areaFill - 0.05f, areaFill + 0.05f);
         hollowXConstant = 0.1724f;
         hollowYConstant = 0.1697f;
         subsection = 5;
         screenwidth = Mathf.Abs(Camera.main.ScreenToWorldPoint(new Vector3(0, 0)).x) * 2;
-        ObstacleGenerator();
+        Collider2D[] objects = ObstacleGenerator();
+        Debug.Log("num " + objects.Length);
+        
+        saveScript.objects = objects;
     }
 
-    void ObstacleGenerator()
+    Collider2D[] ObstacleGenerator()
     {
         int failcount = 0;
         int layerId = 8;
@@ -67,9 +73,10 @@ public class generatelevel : MonoBehaviour
         if (failcount > 10000)
         { 
         
-            //Debug.Log("failed");
+            Debug.Log("failed");
         }
-        
+        objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, 30), layerMask);
+        return objectsInSection;
     }
 
     void Generateobstacle(ref int namenum, float xpos, float ypos, float xscale, float yscale, ref GameObject currentObstacle)
