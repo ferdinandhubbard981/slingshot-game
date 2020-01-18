@@ -9,7 +9,7 @@ public class levelData
     public float[,] scales;
     public float[] zRotations;
     public string[] names;
-    public levelData(onClick data)
+    public levelData(LevelGeneratorManager data)
     {
         positions = data.positions;
         scales = data.scales;

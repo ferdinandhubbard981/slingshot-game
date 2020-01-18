@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class generatelevel : MonoBehaviour
 {
-    public GameObject levelButton;
-    onClick saveScript;
+    public GameObject generatedLevelManager;
+    LevelGeneratorManager saveScript;
     public GameObject[] prefabs;
     public float skewIntensity = 1;
     float randomXPos, randomYPos, randomXScale, randomYScale, randomZRotation, hollowXConstant, hollowYConstant, skew;
+    public int levelHeight, requiredWallsPerSubsection = 1;
     public float areaFill = 0.2f;
     float screenwidth;
     GameObject currentObstacle;
@@ -16,7 +17,7 @@ public class generatelevel : MonoBehaviour
     float subsection;
     void Start()
     {
-        saveScript = levelButton.GetComponent<onClick>();
+        saveScript = generatedLevelManager.GetComponent<LevelGeneratorManager>();
         areaFill = Random.Range(areaFill - 0.05f, areaFill + 0.05f);
         hollowXConstant = 0.1724f;
         hollowYConstant = 0.1697f;
@@ -30,24 +31,37 @@ public class generatelevel : MonoBehaviour
 
     Collider2D[] ObstacleGenerator()
     {
+        int wallsInSubsection = 0;
+        levelHeight = Random.Range(6, 13) * 5;
+        Instantiate(prefabs[2], new Vector3(0, levelHeight), Quaternion.identity);
+
         int failcount = 0;
         int layerId = 8;
         int layerMask = 1 << layerId;
         float subsectionOverlapArea;
         int x = 0;  
         
-        Collider2D[] objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, 30));
-        while (CalculateAreaOverlap(objectsInSection, screenwidth * 5 * 5) < areaFill && failcount < 10000)
+        Collider2D[] objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, levelHeight + 1));
+        while (CalculateAreaOverlap(objectsInSection, screenwidth * (levelHeight - 5)) < areaFill && failcount < 300000)
         {
-            while (subsection < 30)
+            while (subsection < levelHeight)
             {
                 subsectionOverlapArea = 0;
+                wallsInSubsection = 0;
                 //Debug.Log("subsection: " + subsection);
-                while (subsectionOverlapArea < areaFill && failcount < 10000)
-                {                  
+                while ((subsectionOverlapArea < areaFill || wallsInSubsection < requiredWallsPerSubsection) && failcount < 300000)
+                {
+                    if (wallsInSubsection < requiredWallsPerSubsection && subsectionOverlapArea >= areaFill)
+                    {
+                        RemoveObjectsArray(objectsInSection);
+                    }
                     RandomNumbers(x);                  
                     Generateobstacle(ref x, randomXPos, randomYPos, randomXScale, randomYScale, ref currentObstacle);
-                    Check(ref x, layerMask);
+                    if (Check(ref x, layerMask) && currentObstacle.name == "wall")
+                    {
+                        wallsInSubsection++;
+                    }
+                    
 
                     subsectionOverlapArea = CalculateAreaOverlap(objectsInSection, 5 * screenwidth);
                     //Debug.Log(subsectionOverlapArea);
@@ -61,21 +75,21 @@ public class generatelevel : MonoBehaviour
 
             }
             failcount++;           
-            Collider2D[] objectsOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 0), new Vector2(-screenwidth / 2 - 5, 30), layerMask);
-            RemoveObjectsArray(objectsOutOfBounds);
-            objectsOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(screenwidth / 2, 0), new Vector2(screenwidth / 2 + 5, 30), layerMask);
-            RemoveObjectsArray(objectsOutOfBounds);
-            objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, 30), layerMask);
+            Collider2D[] objectsOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 0), new Vector2(-screenwidth / 2 - 5, levelHeight), layerMask);
+            RemoveObjectsArray(objectsOutOfBounds);// to the right
+            objectsOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(screenwidth / 2, 0), new Vector2(screenwidth / 2 + 5, levelHeight), layerMask);
+            RemoveObjectsArray(objectsOutOfBounds); // to the left
+            objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, levelHeight), layerMask);
             subsection = 5;
         }
 
         ReplaceHollow(objectsInSection);
-        if (failcount > 10000)
+        if (failcount > 100000)
         { 
         
             Debug.Log("failed");
         }
-        objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, 30), layerMask);
+        objectsInSection = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, levelHeight), layerMask);
         return objectsInSection;
     }
 
@@ -83,7 +97,8 @@ public class generatelevel : MonoBehaviour
     {
         
         currentObstacle = Instantiate(prefabs[0], new Vector3(xpos, ypos), Quaternion.Euler(0,0,randomZRotation));
-        currentObstacle.name = prefabs[Random.Range(0, prefabs.Length)].name;
+        currentObstacle.name = prefabs[Random.Range(0, 2)].name;
+        
         currentObstacle.transform.localScale = new Vector3(xscale, yscale);//check problem <<
         boxCollider = currentObstacle.GetComponent<BoxCollider2D>();
         boxCollider.size = new Vector2(currentObstacle.transform.localScale.x, currentObstacle.transform.localScale.y);
@@ -110,7 +125,7 @@ public class generatelevel : MonoBehaviour
         randomZRotation = Random.Range(1, 13) * 15;
         //Debug.Log(x + " pos: " + randomXPos.ToString() + " " + randomYPos.ToString() + " scale: " + randomXScale.ToString() + " " + randomYScale.ToString());
     }
-    void Check(ref int x, int layerMask)
+    bool Check(ref int x, int layerMask)
     {
         Collider2D newObstacleCollider = currentObstacle.GetComponent<Collider2D>();
         List<Collider2D> intersections = new List<Collider2D>();
@@ -121,11 +136,13 @@ public class generatelevel : MonoBehaviour
             //Debug.Log(intersections.Count);
             //Debug.Log("name: " + intersections[0].gameObject.name);
             Destroy(currentObstacle);
-            x -= 1;           
+            x -= 1;
+            return false;
         }
         else
         {
             boxCollider.size = new Vector2(1, 1);
+            return true;
         }
         
     }
@@ -161,7 +178,7 @@ public class generatelevel : MonoBehaviour
     void RemoveObjectsArray(Collider2D[] list)
     {
         foreach (Collider2D item in list)
-        {
+        {           
             Destroy(item.gameObject);
         }
     }

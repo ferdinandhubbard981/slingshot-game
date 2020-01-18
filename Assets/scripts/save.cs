@@ -4,29 +4,29 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public static class save
 {
-    public static void SaveLevel(onClick onClick)
+    public static void SaveLevel(LevelGeneratorManager manager)
     {
-        int fileNum = 1;
-        string path = "D:\\coding\\slingshot-game\\levels\\level_" + fileNum.ToString();
+        int levelNum = 1;
+        string path = Directory.GetCurrentDirectory() + "\\levels\\level_" + levelNum.ToString();
         while (File.Exists(path))
         {
-            fileNum += 1;
-            path = "D:\\coding\\slingshot-game\\levels\\level_" + fileNum.ToString();
+            levelNum += 1;
+            path = Directory.GetCurrentDirectory() + "\\levels\\level_" + levelNum.ToString();
         }
         BinaryFormatter formatter = new BinaryFormatter();
         
         FileStream stream = new FileStream(path, FileMode.Create);
 
-        levelData data = new levelData(onClick);
+        levelData data = new levelData(manager);
         formatter.Serialize(stream, data);
         stream.Close();
 
 
     }
 
-    public static levelData LoadLevel(int fileNum)
+    public static levelData LoadLevel(int levelNum)
     {        
-        string path = "D:\\coding\\slingshot-game\\levels\\level_" + fileNum.ToString();
+        string path = Directory.GetCurrentDirectory() + "\\levels\\level_" + levelNum.ToString();
         if (File.Exists(path))
         {
             BinaryFormatter formatter = new BinaryFormatter();
