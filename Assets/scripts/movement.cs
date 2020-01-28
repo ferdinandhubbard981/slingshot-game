@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -9,6 +10,8 @@ public class movement : MonoBehaviour
     List<SpriteRenderer> dotSpriteRenderer;
     public GameObject dotPrefab;
     public GameObject lavaPrefab;
+    public GameObject levelManager;
+    LevelManager levelManagerScript;
     lavarise lavaScript;
     GameObject lava;
     List<GameObject> trajectoryPoints;
@@ -32,7 +35,7 @@ public class movement : MonoBehaviour
 
     private void Start()
     {
-        
+        levelManagerScript = levelManager.GetComponent<LevelManager>();
         lava = Instantiate(lavaPrefab);
         lavaScript = lava.GetComponent<lavarise>();
         cameraFollow = cameraHolder.GetComponent<cameramovement>();
@@ -132,11 +135,14 @@ public class movement : MonoBehaviour
     {
         if (collision.gameObject.tag == "kill")
         {
-            killPlayer();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+
         }
         else if (collision.gameObject.tag == "win")
         {
+            levelManagerScript.WriteLevelNum();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);            
+            
         }
     }
     void trajectoryLine()
@@ -187,27 +193,14 @@ public class movement : MonoBehaviour
             }
         }
     }
-    public void killPlayer()
-    {
-        Destroy(lava);
-        cameraFollow.cameraMovement = false;
-        cameraFollow.transform.position = new Vector3(0, 5.85f, -10);
-        rb.velocity = new Vector2(0, 0);
-        rb.position = new Vector2(0, 0.85f);
-        contact = true;
-        
-        rb.gravityScale = 0;
-        //Destroy(gameObject);
-        lava = Instantiate(lavaPrefab);
-
-    }
+    
     void LavaAdjust()
     {
         if (transform.position.y - (lava.transform.position.y + lava.transform.localScale.y / 2) > 10)
         {
             Vector3 desiredPosition = new Vector3(0, transform.position.y - (10 + lavaScript.transform.localScale.y / 2), 1);
             Vector3 smoothedPosition = Vector3.Lerp(lava.transform.position, desiredPosition, 0.05f);
-            transform.position = smoothedPosition;
+            lava.transform.position = smoothedPosition;
         }
     }
 

@@ -18,7 +18,7 @@ public class cameramovement : MonoBehaviour {
     {
         if (player.transform.position.y < Camera.main.ScreenToWorldPoint(new Vector3(0, 0, -10)).y)
         {
-            movementScript.killPlayer();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         else if ((player.transform.position.y + 5 > transform.position.y || Camera.main.ScreenToWorldPoint(new Vector3(0, 0, -10)).y + 2 > player.transform.position.y) & cameraMovement)
         {

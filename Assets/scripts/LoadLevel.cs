@@ -5,10 +5,11 @@ using UnityEngine;
 public class LoadLevel : MonoBehaviour
 {
     public GameObject[] prefabs;
-    public int levelNum;
-    void Start()
+    public void InitializeLevel(int levelNum)
     {
-        string path = System.IO.Directory.GetCurrentDirectory() + "\\levels\\level_" + levelNum.ToString();
+        string subPath = "iphone8";
+        Debug.Log(SystemInfo.deviceType);
+        string path = System.IO.Directory.GetCurrentDirectory() + "\\levels\\" + subPath + "\\level_" + levelNum.ToString();
         while (System.IO.File.Exists(path) == false && levelNum < 2000)
         {
             
@@ -20,9 +21,9 @@ public class LoadLevel : MonoBehaviour
         {
             Debug.Log("failed loading");
         }
-        Load();
+        Load(levelNum);
     }
-    public void Load()
+    public void Load(int levelNum)
     {
 
         levelData data = save.LoadLevel(levelNum);
@@ -32,16 +33,21 @@ public class LoadLevel : MonoBehaviour
         string[] names = data.names;
         for (int x = 0; x < names.Length; x++)
         {
-            if (!(names[x] == "hollow"))
+            if (names[x] == "wall")
             {
                 Generateobstacle(prefabs[0], positions[x, 0], positions[x, 1], scales[x, 0], scales[x, 1], zRotations[x]);
             }          
-            else //if (names[x] == "hollow(Clone)")
+            else if(names[x] == "hollow(Clone)")
             {
-                Debug.Log("hollow");
+                Debug.Log(names[x]);
                 Generateobstacle(prefabs[1], positions[x, 0], positions[x, 1], scales[x, 0], scales[x, 1], zRotations[x]);
             }
-
+            else //if (names[x] == "win")
+            {
+                Debug.Log("win");
+                Generateobstacle(prefabs[2], positions[x, 0], positions[x, 1], scales[x, 0], scales[x, 1], zRotations[x]);
+            }
+            
 
 
         }

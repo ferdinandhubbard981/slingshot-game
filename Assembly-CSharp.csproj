@@ -63,21 +63,25 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\LevelGeneratorManager.cs" />
     <Compile Include="Assets\scripts\cameramovement.cs" />
-    <Compile Include="Assets\scripts\generatelevel.cs" />
     <Compile Include="Assets\scripts\hollowScripts\AnchorX.cs" />
     <Compile Include="Assets\scripts\hollowScripts\AnchorY.cs" />
     <Compile Include="Assets\scripts\hollowScripts\HollowRotation.cs" />
     <Compile Include="Assets\scripts\hollowScripts\xAxisLock.cs" />
     <Compile Include="Assets\scripts\hollowScripts\yAxisLock.cs" />
     <Compile Include="Assets\scripts\lavarise.cs" />
-    <Compile Include="Assets\scripts\levelData.cs" />
-    <Compile Include="Assets\scripts\LevelTester\levelManager.cs" />
+    <Compile Include="Assets\scripts\LevelManager.cs" />
     <Compile Include="Assets\scripts\LoadLevel.cs" />
     <Compile Include="Assets\scripts\movement.cs" />
-    <Compile Include="Assets\scripts\reset.cs" />
-    <Compile Include="Assets\scripts\save.cs" />
+    <Compile Include="Assets\scripts\non-build\LevelGenerator\generatelevel.cs" />
+    <Compile Include="Assets\scripts\non-build\LevelGenerator\levelData.cs" />
+    <Compile Include="Assets\scripts\non-build\LevelGenerator\LevelGeneratorManager.cs" />
+    <Compile Include="Assets\scripts\non-build\LevelGenerator\levelRanker.cs" />
+    <Compile Include="Assets\scripts\non-build\LevelTester\levelTestManager.cs" />
+    <Compile Include="Assets\scripts\non-build\ReplaceHollow.cs" />
+    <Compile Include="Assets\scripts\non-build\save.cs" />
+    <Compile Include="Assets\scripts\non-build\Testcameramovement.cs" />
+    <Compile Include="Assets\scripts\non-build\TestMovement.cs" />
     <Compile Include="Assets\scripts\TimeManager.cs" />
     <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
     <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
