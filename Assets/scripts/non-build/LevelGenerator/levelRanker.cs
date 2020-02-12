@@ -8,9 +8,11 @@ using System.Linq;
 public static class levelRanker
 {
     static string path = Directory.GetCurrentDirectory() + "\\LevelRanker";
-    public static void AddToLevelList(int levelHeight, float hollowDensity, int levelNumber)
+
+
+    public static void AddToLevelList(int levelHeight, float hollowDensity, float wallDensity, int levelNumber)
     {
-        float levelDifficulty = GetLevelDifficulty(levelHeight, hollowDensity);
+        float levelDifficulty = GetLevelDifficulty(hollowDensity, wallDensity);
         BinaryFormatter formatter = new BinaryFormatter();
 
         
@@ -24,12 +26,11 @@ public static class levelRanker
 
                 dict.Add(levelNumber, levelDifficulty);
             }
-            catch (System.Exception)
+            catch (System.ArgumentException)
             {
-                dict.Add(levelNumber, levelDifficulty + 0.001f);
-                throw;
-            }
-            Dictionary<int, float> sortedDict = (from entry in dict orderby entry.Value ascending select entry).ToDictionary(i => i.Key, i => i.Value);
+                dict[levelNumber] = levelDifficulty;
+            }           
+            Dictionary<int, float> sortedDict = (from entry in dict orderby entry.Value descending select entry).ToDictionary(i => i.Key, i => i.Value);
 
             stream.Close();
             stream = new FileStream(path, FileMode.Create);
@@ -44,30 +45,54 @@ public static class levelRanker
             formatter.Serialize(stream, dict);
             stream.Close();
         }
-        Debug.Log("level number: " + levelNumber + " difficulty: " + levelDifficulty);
+        Debug.Log("level number: " + levelNumber + "\ndifficulty: " + levelDifficulty + "density: " + hollowDensity);
+
+
 
 
     }
-    static float GetLevelDifficulty(int levelHeight, float hollowDensity)
+    public static float GetLevelDifficulty(float hollowDensity, float wallDensity)
     {
-        return levelHeight / 60 * 0.3f + hollowDensity * 0.7f;
+        return hollowDensity * 0.7f + wallDensity * 0.2f;
     }
 
 
 
-    static public int GetNextLevel(int index)
+
+
+    public static int GetNextLevel(int index)
     {
         BinaryFormatter formatter = new BinaryFormatter();
         if (File.Exists(path))
         {
             FileStream stream = new FileStream(path, FileMode.Open);
             var dict = formatter.Deserialize(stream) as Dictionary<int, float>;
+            stream.Close();
+            Debug.Log(dict.ElementAt(index).Value);
             return dict.ElementAt(index).Key;
         }
         else
         {
             return -1;
         }
+    }
+
+    public static void GetDifficultyPercentileValue(ref float difficultyValue,  float percentile)
+    {
+        BinaryFormatter formatter = new BinaryFormatter();
+        if (File.Exists(path))
+        {
+            FileStream stream = new FileStream(path, FileMode.Open);
+            var dict = formatter.Deserialize(stream) as Dictionary<int, float>;
+            stream.Close();
+            float interQuartileRange = dict.ElementAt(dict.Count / 4).Value - dict.ElementAt(dict.Count * 3 / 4).Value;
+            difficultyValue = Mathf.Abs(interQuartileRange) * percentile / 100f + dict.ElementAt(dict.Count / 4).Value;
+        }
+        else
+        {
+            difficultyValue = -1f;
+        }
+
     }
 
    

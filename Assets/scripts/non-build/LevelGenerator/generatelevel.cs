@@ -18,8 +18,12 @@ public class generatelevel : MonoBehaviour
     GameObject currentObstacle;
     BoxCollider2D boxCollider;
     float currentSection;
+    
     void Start()
     {
+        float percentileOfDifficulty = 10, desiredDifficultyValue = 0;
+
+        //levelRanker.GetDifficultyPercentileValue(ref desiredDifficultyValue, percentileOfDifficulty);
         areaFill += Random.Range(-0.05f, 0.05f) / 10;
         saveScript = generatedLevelManager.GetComponent<LevelGeneratorManager>();
         hollowXConstant = 0.1724f;
@@ -28,7 +32,7 @@ public class generatelevel : MonoBehaviour
         screenwidth = Mathf.Abs(Camera.main.ScreenToWorldPoint(new Vector3(0, 0)).x) * 2;
         //int requiredVariance = 1;
         //int variance = 0;
-        Collider2D[] objects;
+        Collider2D[] objectsInLevel;
         /*do
         {
             objects = ObstacleGenerator();
@@ -38,24 +42,24 @@ public class generatelevel : MonoBehaviour
         */
 
         //Debug.Log("num " + objects.Length);
-        
-        objects = ObstacleGenerator();
-        saveScript.objects = objects;
+        float hollowDensity = 0;
+        float wallDensity = 0;
+        objectsInLevel = ObstacleGenerator(ref hollowDensity, ref wallDensity);
         if (Input.GetKey(KeyCode.Space) == false)
         {
-            int levelNum = saveScript.Save();
-            levelRanker.AddToLevelList(levelHeight, GetHollowDensity(objects), levelNum);
-            //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            int levelNum = saveScript.Save(objectsInLevel, levelHeight);
+            levelRanker.AddToLevelList(levelHeight, hollowDensity, wallDensity, levelNum);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
-        
-    } 
 
-    Collider2D[] ObstacleGenerator()
+    }
+
+    Collider2D[] ObstacleGenerator(ref float hollowDensity, ref float wallDensity)
     {
         int wallsInsection = 0;
         levelHeight = Random.Range(6, 13) * 5;
         Instantiate(prefabs[2], new Vector3(0, levelHeight), Quaternion.identity);
-        int failcount = 0;
+        int failCount = 0;
         int innerFailCount = 0;
         int middleFailCount = 0;
         int outerFailCount = 0;
@@ -66,7 +70,7 @@ public class generatelevel : MonoBehaviour
 
         Collider2D[] collidersInSection = new Collider2D[0];
         Collider2D[] collidersInLevel = new Collider2D[0];
-        while (CalculateAreaOverlap(collidersInLevel, screenwidth * (levelHeight - 5)) < areaFill && failcount < 100000)
+        while (CalculateAreaOverlap(collidersInLevel, screenwidth * (levelHeight - 5)) < areaFill && failCount < 100000)
         {
             while (currentSection < levelHeight)
             {
@@ -74,10 +78,10 @@ public class generatelevel : MonoBehaviour
                 sectionOverlapArea = 0;
                 wallsInsection = 0;
                 //Debug.Log("subsection: " + subsection);
-                while ((sectionOverlapArea < changedAreaFill || wallsInsection < requiredWallsPerSection) && failcount < 100000)
+                while ((sectionOverlapArea < changedAreaFill || wallsInsection < requiredWallsPerSection) && innerFailCount < 100000)
                 {
-                    Debug.Log("section overlap area: " + sectionOverlapArea);
-                    if (sectionOverlapArea >= areaFill && currentSection % 2 == 0)
+                    //Debug.Log("section overlap area: " + sectionOverlapArea);
+                    /*if (sectionOverlapArea >= areaFill && currentSection % 2 == 0)
                     {
                         if (collidersInSection.Length >= requiredWallsPerSection)
                         {
@@ -94,8 +98,8 @@ public class generatelevel : MonoBehaviour
                         }
                         
                         
-                    }
-                    RandomNumbers(x);                  
+                    }*/
+                    RandomNumbers(x);
                     Generateobstacle(ref x, randomXPos, randomYPos, randomXScale, randomYScale, ref currentObstacle);
                     if (Check(ref x, layerMask) && currentObstacle.name == "wall")
                     {
@@ -107,14 +111,14 @@ public class generatelevel : MonoBehaviour
                     sectionOverlapArea = CalculateAreaOverlap(collidersInSection, 5 * screenwidth);
                     //Debug.Log(subsectionOverlapArea);                 
                     innerFailCount++;
-                    failcount++;
+                    failCount++;
                 }
                 middleFailCount++;
                 currentSection += 5;
 
             }
-            
-            outerFailCount++;           
+
+            outerFailCount++;
             Collider2D[] collidersOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 0), new Vector2(-screenwidth / 2 - 5, levelHeight), layerMask);
             RemoveColliderObjectsArray(collidersOutOfBounds);// to the right
             collidersOutOfBounds = Physics2D.OverlapAreaAll(new Vector2(screenwidth / 2, 0), new Vector2(screenwidth / 2 + 5, levelHeight), layerMask);
@@ -122,15 +126,21 @@ public class generatelevel : MonoBehaviour
             collidersInLevel = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, levelHeight), layerMask);
             currentSection = 5;
         }
-
+        hollowDensity = GetHollowDensity(collidersInLevel);
+        wallDensity = GetWallDensity(collidersInLevel);
         ReplaceHollow(collidersInLevel);
-        if (failcount > 99999)
-        { 
-        
+        if (innerFailCount + middleFailCount + outerFailCount > 99999)
+        {
+
             Debug.Log("failed");
             Debug.Log("innerCount" + innerFailCount);
             Debug.Log("middleCount" + middleFailCount);
             Debug.Log("outerCount" + outerFailCount);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+        if (FirstJumpPossible() && WallsWithinRange())
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         collidersInLevel = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, 5), new Vector2(screenwidth / 2, levelHeight), layerMask);
         return collidersInLevel;
@@ -138,10 +148,10 @@ public class generatelevel : MonoBehaviour
 
     void Generateobstacle(ref int namenum, float xpos, float ypos, float xscale, float yscale, ref GameObject currentObstacle)
     {
-        
-        currentObstacle = Instantiate(prefabs[0], new Vector3(xpos, ypos), Quaternion.Euler(0,0,randomZRotation));
+
+        currentObstacle = Instantiate(prefabs[0], new Vector3(xpos, ypos), Quaternion.Euler(0, 0, randomZRotation));
         currentObstacle.name = prefabs[Random.Range(0, 2)].name;
-        
+
         currentObstacle.transform.localScale = new Vector3(xscale, yscale);//check problem <<
         boxCollider = currentObstacle.GetComponent<BoxCollider2D>();
         boxCollider.size = new Vector2(currentObstacle.transform.localScale.x, currentObstacle.transform.localScale.y);
@@ -164,7 +174,7 @@ public class generatelevel : MonoBehaviour
         {
             randomYScale = Random.Range(1, 20 / randomXScale) / skew;
         }
-        
+
         randomZRotation = Random.Range(1, 13) * 15;
         //Debug.Log(x + " pos: " + randomXPos.ToString() + " " + randomYPos.ToString() + " scale: " + randomXScale.ToString() + " " + randomYScale.ToString());
     }
@@ -187,11 +197,11 @@ public class generatelevel : MonoBehaviour
             boxCollider.size = new Vector2(1, 1);
             return true;
         }
-        
+
     }
     float CalculateAreaOverlap(Collider2D[] objects, float area)
     {
-        
+
         float totalArea = 0;
         foreach (Collider2D item in objects)
         {
@@ -204,7 +214,7 @@ public class generatelevel : MonoBehaviour
     {
         foreach (Collider2D collider in objectsInSection)
         {
-            Debug.Log(collider.gameObject.name);
+            //Debug.Log(collider.gameObject.name);
             if (collider.gameObject.name == "hollow")
             {
                 Vector3 position = collider.gameObject.transform.position;
@@ -213,6 +223,7 @@ public class generatelevel : MonoBehaviour
                 Destroy(collider.gameObject);
                 currentObstacle = Instantiate(prefabs[1], position, rotation);
                 currentObstacle.transform.localScale = scale;
+                currentObstacle.name = prefabs[1].name;
             }
         }
 
@@ -252,18 +263,98 @@ public class generatelevel : MonoBehaviour
     {
 
     }
-    
+
     float GetHollowDensity(Collider2D[] colliders)
     {
-        float HollowDensity = 0;
+        float hollowDensity = 0;
         foreach (Collider2D item in colliders)
         {
-            if (item.gameObject.name == prefabs[1].name)
+            if (item.gameObject.name == "hollow")
             {
-                HollowDensity += item.gameObject.transform.localScale.x * item.gameObject.transform.localScale.y;
+                hollowDensity += item.gameObject.transform.localScale.x * item.gameObject.transform.localScale.y;
             }
         }
-        return HollowDensity / (levelHeight * screenwidth);
+        return hollowDensity / (levelHeight * screenwidth);
     }
-    
+
+    float GetWallDensity(Collider2D[] colliders)
+    {
+        float wallDensity = 0;
+        foreach (Collider2D item in colliders)
+        {
+            if (item.gameObject.name == "wall")
+            {
+                wallDensity += item.gameObject.transform.localScale.x * item.gameObject.transform.localScale.y;
+            }
+        }
+        return wallDensity / (levelHeight * screenwidth);
+    }
+
+    Vector2[] setTrajectoryPoints(float angle)
+    {
+        Vector2 pStartPosition = new Vector2(0, 0.85f);
+        float gravityScale = 2;
+        Vector2[] trajectoryPoints = new Vector2[30]; 
+        Vector2 pVelocity = new Vector2(0.5f, 0.5f) * 5 * 5;
+        float timeStep = 0.05f;
+        float velocity = Mathf.Sqrt((pVelocity.x * pVelocity.x) + (pVelocity.y * pVelocity.y));
+        //float angle = Mathf.Rad2Deg * (Mathf.Atan2(pVelocity.y, pVelocity.x));
+
+        float fTime = 0;
+
+        fTime += timeStep;
+        for (int i = 0; i < trajectoryPoints.Length; i++)
+        {
+            float dx = velocity * fTime * Mathf.Cos(angle * Mathf.Deg2Rad);
+            float dy = velocity * fTime * Mathf.Sin(angle * Mathf.Deg2Rad) - (Physics2D.gravity.magnitude * gravityScale * fTime * fTime / 2.0f);
+            Vector2 pos = new Vector2(pStartPosition.x + dx, pStartPosition.y + dy);
+            trajectoryPoints[i] = pos;
+            //trajectoryPoints[i].GetComponent<Renderer>().enabled = true;
+            //trajectoryPoints[i].transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2(pVelocity.y - (Physics.gravity.magnitude) * fTime, pVelocity.x) * Mathf.Rad2Deg);
+            fTime += timeStep;
+        }
+        return trajectoryPoints;
+    }
+
+    bool FirstJumpPossible()
+    {
+        for (int angle = 0; angle <= 180; angle++)
+        {
+
+            Vector2[] trajectoryPoints = setTrajectoryPoints(angle);
+            angle++;
+            for (int point = 0; point < trajectoryPoints.Length - 1; point++)
+            {
+                RaycastHit2D result = Physics2D.Linecast(trajectoryPoints[point], trajectoryPoints[point + 1]);
+                if (result && result.collider.gameObject.tag == prefabs[0].tag)
+                {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+    bool WallsWithinRange()
+    {
+        bool wallObject;
+        for (int x = 0; x < levelHeight - 14; x++)
+        {
+            Collider2D[] colliders = Physics2D.OverlapAreaAll(new Vector2(-screenwidth / 2, x), new Vector2(screenwidth / 2, x + 14));
+            wallObject = false;
+            foreach (Collider2D item in colliders)
+            {
+                if (item.gameObject.tag == prefabs[0].tag)
+                {
+                    wallObject = true;
+                }
+            }
+            if (!wallObject)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }

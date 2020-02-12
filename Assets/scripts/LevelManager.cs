@@ -13,12 +13,18 @@ public class LevelManager : MonoBehaviour
     int LevelIndex;
     private void Start()
     {
+        int levelIncrement = 0;
         loadScript = levelLoader.GetComponent<LoadLevel>();
-        ReadLevelNum();
-        loadScript.InitializeLevel(levelNum);
+        do
+        {
+            ReadLevelNum(levelIncrement);
+            levelIncrement++;
+        } while (File.Exists(Directory.GetCurrentDirectory() + "\\levels\\level_" + levelNum) == false && levelIncrement < 2000);
+        loadScript.Load(levelNum);
+        Debug.Log("level: " + levelNum);
     }
 
-    void ReadLevelNum()
+    public void ReadLevelNum(int increment)
     {
         LevelIndex = 0;
         if (File.Exists(path))
@@ -27,7 +33,15 @@ public class LevelManager : MonoBehaviour
             LevelIndex = binReader.ReadInt32();
             binReader.Close();
         }
-        levelNum = levelRanker.GetNextLevel(LevelIndex);
+        else
+        {
+            LevelIndex = -1;
+            WriteLevelNum();
+            LevelIndex = 0;
+        }
+
+        levelNum = levelRanker.GetNextLevel(LevelIndex + increment);
+        
         
         
     }

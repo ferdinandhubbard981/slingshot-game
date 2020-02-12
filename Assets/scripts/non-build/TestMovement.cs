@@ -97,6 +97,7 @@ public class TestMovement : MonoBehaviour
         basepointposition = new Vector2(touchposition.x, touchposition.y);
         timeManager.SlowDownTime();
         cameraFollow.cameraMovement = false;
+
     }
 
 
@@ -117,6 +118,7 @@ public class TestMovement : MonoBehaviour
     {
         touchposition = Camera.main.ScreenToWorldPoint(touch.position);
         direction = (touchposition - basepointposition).normalized;
+        //touchBaseDistance = Mathf.Pow(Mathf.Pow((touchposition.y - basepointposition.y), 2) + Mathf.Pow((touchposition.x - basepointposition.x), 2), 0.5f);
         trajectoryLine();
     }
 
